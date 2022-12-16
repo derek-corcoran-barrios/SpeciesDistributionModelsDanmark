@@ -1,0 +1,57 @@
+---
+title: "Species Distribution Models for Prioritization in Denmark"
+author: "Derek Corcoran"
+date: "`r format(Sys.time(), '%d/%m, %Y')`"
+output:
+  bookdown::github_document2:
+    fig_caption: true
+    toc: true
+bibliography: biblio.bib
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  message = F,
+  error = F,
+  warning = F
+)
+```
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of SpeciesDistributionModelsDanmark is to explore and generate Species distribution models for de prioritization of Denmark based on its biological diversity and landuse.
+
+# Taxonomic cleaning
+
+First we will read a file with all the taxa found in [arter.dk](https://arter.dk/landing-page), on the 21st of September of 2022.
+
+for this we will need the follwing packages [@Wickham2022Readxl; @Chamberlain2020Taxize; @Chamberlain2017RGBIF]:
+
+<details style=\"margin-bottom:10px;\">
+<summary>Load packages</summary>
+```{r LoadPackagesTaxonCleaning, eval = T}
+library(readxl)
+library(taxize)
+library(rgbif)
+library(janitor)
+```
+</details>
+
+We first read the file with all the presences:
+
+```{r}
+Taxa <- readxl::read_xlsx("2022-09-21.xlsx") |> 
+  janitor::clean_names()
+```
+
+This file has `r nrow(Taxa)` entries, however it only has `length(unique(Taxa$videnskabeligt_navn))` unique entries in the attribute *videnskabeligt_navn*
+
+# Presence download
+
+# Presence cleaning
+

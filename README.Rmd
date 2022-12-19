@@ -39,6 +39,8 @@ library(readxl)
 library(taxize)
 library(rgbif)
 library(janitor)
+library(dplyr)
+library(stringr)
 ```
 </details>
 
@@ -63,26 +65,93 @@ NewTaxa <- data.frame(Taxa = sort(unique(Taxa$videnskabeligt_navn)), score = NA,
 
 and then we clean it using taxize first
 
-```{r, eval = F}
+
+<details style=\"margin-bottom:10px;\">
+<summary>Taxize clean</summary>
+```{r resultstaxize, eval = T, message=F, cache=TRUE}
+
+dir.create("Results")
+
 for(i in 1:nrow(NewTaxa)){
   try({
     Temp <- taxize::gnr_resolve(NewTaxa$Taxa[i],
                                          data_source_ids = "11", canonical = TRUE, best_match_only = T) |> 
       dplyr::select(score, matched_name2)
     NewTaxa[i,3:4] <- Temp
-      if((i %% 100) == 0){
-      print(paste(i, "of", nrow(Data1), "Ready!", Sys.time()))
-      readr::write_csv(NewTaxa, "Cleaned_Taxa_Taxize.csv")
+      if((i %% 50) == 0){
+      message(paste(i, "of", nrow(NewTaxa), "Ready!", Sys.time()))
+      readr::write_csv(NewTaxa, "Results/Cleaned_Taxa_Taxize.csv")
     }
     gc()
-  })
+  }, silent = T)
   
 }
+```
+</details>
 
+This cleaning ends up eliminating `r NewTaxa |> dplyr::filter(is.na(matched_name2)) |>  dplyr::pull(Taxa) |>  unique() |>  length()` taxa which are mostly Families, subfamilies or hybrid species, as seen in table \@ref(tab:tableout1)
 
+```{r tableout1, echo = F}
+TableOut1 <- NewTaxa |> 
+  dplyr::filter(is.na(matched_name2)) |> 
+  dplyr::select(-matched_name2) |> 
+  dplyr::slice_head(n = 10)
 
+knitr::kable(TableOut1, caption = "First 10 taxa eliminated by taxize")
 ```
 
+Of the reminding species that were identidied by taxize there are still some unique species in out initial file that ended up being identified as duplicate species some examples can be seen in \@ref(tab:FindDuplicates)
+
+
+```{r FindDuplicates, echo = F}
+Duplicates <-  readr::read_csv("Results/Cleaned_Taxa_Taxize.csv") |> 
+    dplyr::filter(!is.na(matched_name2)) |> 
+    dplyr::group_by(matched_name2) |> 
+    dplyr::summarise(n = n()) |> 
+    dplyr::filter(n > 1) |> 
+    mutate(Words = str_count(matched_name2, '\\w+')) |> 
+    dplyr::filter(Words > 1) |> 
+  dplyr::pull(matched_name2)
+
+DuplicateTable <-  NewTaxa |> 
+  dplyr::filter(matched_name2 %in% Duplicates) |> 
+  slice_head(n = 12)
+
+knitr::kable(DuplicateTable, caption = "First 12 duplicate species")
+```
+All and all, we started with `r prettyNum(length(unique(NewTaxa$Taxa)), big.mark = ",")` unique taxa and ended up with `r readr::read_csv("Results/Cleaned_Taxa_Taxize.csv") |>   dplyr::filter(!is.na(matched_name2)) |> pull(matched_name2) |> unique() |> length() |> prettyNum(big.mark = ",")` unique taxa
+
+## Cleaning using RGBIF
+
+In order to do this cleanly we will just get one observation of each taxa found by Taxize in its column matched_name2
+
+
+<details style=\"margin-bottom:10px;\">
+<summary>Unique taxize names</summary>
+```{r UniqueTaxize}
+Cleaned_Taxize <- NewTaxa |> 
+  dplyr::filter(!is.na(matched_name2)) |> 
+  dplyr::group_by(matched_name2) |> 
+  dplyr::filter(TaxaID == min(TaxaID)) |> 
+  ungroup()
+
+```
+</details>
+
+and then we will pass this through rgbif, change the input name (vertbatim_name), to matched_name2, so that it is the same as in cleaned_Taxize, then we kept the matched, name, the confidence on the finding for RGBIF, and all the taxonomic groups
+
+<details style=\"margin-bottom:10px;\">
+<summary>rgbif call</summary>
+```{r rgbif_find, cache=T}
+rgbif_find <- rgbif::name_backbone_checklist(Cleaned_Taxize$matched_name2) |>
+  # Change name to match the cleaned_taxize dataset
+  dplyr::rename(matched_name2 = verbatim_name) |> 
+  dplyr::relocate(matched_name2, .before = everything()) |> 
+  dplyr::select(matched_name2, confidence, kingdom, phylum, order, family, genus, species)
+
+readr::write_csv(rgbif_find, "Results/Cleaned_Taxa_rgbif.csv")
+```
+</details>
 
 # Presence download
 

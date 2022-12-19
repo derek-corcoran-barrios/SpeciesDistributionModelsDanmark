@@ -100,7 +100,7 @@ TableOut1 <- NewTaxa |>
 knitr::kable(TableOut1, caption = "First 10 taxa eliminated by taxize")
 ```
 
-Of the reminding species that were identidied by taxize there are still some unique species in out initial file that ended up being identified as duplicate species some examples can be seen in \@ref(tab:FindDuplicates)
+Of the reminding species that were identidied by taxize there are still some unique species in out initial file that ended up being identified as duplicate species some examples can be seen in table \@ref(tab:FindDuplicates)
 
 
 ```{r FindDuplicates, echo = F}
@@ -152,6 +152,35 @@ rgbif_find <- rgbif::name_backbone_checklist(Cleaned_Taxize$matched_name2) |>
 readr::write_csv(rgbif_find, "Results/Cleaned_Taxa_rgbif.csv")
 ```
 </details>
+
+Since we are only interested in taxa that is at least resolved to the species level, we filter out groups that have not resolved to that level:
+
+<details style=\"margin-bottom:10px;\">
+<summary>Species only</summary>
+```{r SpeciesOnly, cache=T}
+Species_Only <- rgbif_find |> 
+  dplyr::filter(!is.na(species))
+```
+</details>
+
+which eliminates `r prettyNum(nrow(rgbif_find) - nrow(Species_Only), big.mark = ",")`, rows of our data set, leaving us with `r prettyNum(nrow(Species_Only), big.mark = ",")` of data. However, we still have to filter synonyms out, and subspecies out. In in table \@ref(tab:DuplicateTablesGBIF), we can see the first 10 records in Species_Only, that lead to duplicated species names, here we find both synonyms, but also subsepecies. So by the end, we end up with `r prettyNum(length(unique(Species_Only$species)), big.marp = ",")` unique species
+
+
+```{r DuplicateTablesGBIF, cache=T, echo = F}
+Duplicates <-  Species_Only |> 
+        dplyr::group_by(species) |> 
+    dplyr::summarise(n = n()) |> 
+    dplyr::filter(n > 1) |> 
+  dplyr::pull(species)
+
+DuplicateTableGBIF <-  Species_Only |> 
+  dplyr::filter(species %in% Duplicates) |> 
+  slice_head(n = 10)
+
+knitr::kable(DuplicateTableGBIF, caption = "First 10 duplicate species")
+```
+
+
 
 # Presence download
 

@@ -117,7 +117,7 @@ Table 1.1: First 10 taxa eliminated by taxize
 
 Of the reminding species that were identidied by taxize there are still
 some unique species in out initial file that ended up being identified
-as duplicate species some examples can be seen in
+as duplicate species some examples can be seen in table
 <a href="#tab:FindDuplicates">1.2</a>
 
 | TaxaID | Taxa                                                        | score | matched_name2                   |
@@ -185,6 +185,46 @@ readr::write_csv(rgbif_find, "Results/Cleaned_Taxa_rgbif.csv")
 ```
 
 </details>
+
+Since we are only interested in taxa that is at least resolved to the
+species level, we filter out groups that have not resolved to that
+level:
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Species only
+
+</summary>
+
+``` r
+Species_Only <- rgbif_find |> 
+  dplyr::filter(!is.na(species))
+```
+
+</details>
+
+which eliminates 17,278, rows of our data set, leaving us with 41,934 of
+data. However, we still have to filter synonyms out, and subspecies out.
+In in table <a href="#tab:DuplicateTablesGBIF">1.3</a>, we can see the
+first 10 records in Species_Only, that lead to duplicated species names,
+here we find both synonyms, but also subsepecies. So by the end, we end
+up with 40328 unique species
+
+| matched_name2                   | confidence | kingdom  | phylum       | order          | family         | genus       | species                 |
+|:--------------------------------|-----------:|:---------|:-------------|:---------------|:---------------|:------------|:------------------------|
+| Abies concolor                  |         98 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies concolor          |
+| Abies lowiana                   |         98 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies concolor          |
+| Abies nordmanniana              |         99 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies nordmanniana      |
+| Abies nordmanniana equi-trojani |         97 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies nordmanniana      |
+| Abies nordmanniana nordmanniana |         98 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies nordmanniana      |
+| Abrothallus bertianus           |         97 | Fungi    | Ascomycota   | Abrothallales  | Abrothallaceae | Abrothallus | Abrothallus parmeliarum |
+| Abrothallus parmeliarum         |         97 | Fungi    | Ascomycota   | Abrothallales  | Abrothallaceae | Abrothallus | Abrothallus parmeliarum |
+| Acalitus stenaspis              |         99 | Animalia | Arthropoda   | Trombidiformes | Eriophyidae    | Acalitus    | Acalitus stenaspis      |
+| Acanthis cabaret                |         98 | Animalia | Chordata     | Passeriformes  | Fringillidae   | Acanthis    | Acanthis flammea        |
+| Acanthis flammea                |         99 | Animalia | Chordata     | Passeriformes  | Fringillidae   | Acanthis    | Acanthis flammea        |
+
+Table 1.3: First 10 duplicate species
 
 # 2 Presence download
 

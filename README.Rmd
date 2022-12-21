@@ -175,10 +175,23 @@ Duplicates <-  Species_Only |>
 
 DuplicateTableGBIF <-  Species_Only |> 
   dplyr::filter(species %in% Duplicates) |> 
+  dplyr::select(-family, -genus) |> 
   slice_head(n = 10)
 
 knitr::kable(DuplicateTableGBIF, caption = "First 10 duplicate species")
 ```
+
+Finally we make a data.frame with the final species list
+
+<details style=\"margin-bottom:10px;\">
+<summary>Final species list</summary>
+```{r FinalSpeciesList}
+FinalSpeciesList <- Species_Only |> 
+  group_by(species) |> 
+  dplyr::filter(confidence == max(confidence))
+readr::write_csv(FinalSpeciesList, "Results/FinalSpeciesList.csv")
+```
+</details>
 
 
 

@@ -1,7 +1,7 @@
 Species Distribution Models for Prioritization in Denmark
 ================
 Derek Corcoran
-19/12, 2022
+21/12, 2022
 
 -   [1 Taxonomic cleaning](#1-taxonomic-cleaning)
     -   [1.1 Cleaning using Taxize](#11-cleaning-using-taxize)
@@ -211,20 +211,38 @@ first 10 records in Species_Only, that lead to duplicated species names,
 here we find both synonyms, but also subsepecies. So by the end, we end
 up with 40328 unique species
 
-| matched_name2                   | confidence | kingdom  | phylum       | order          | family         | genus       | species                 |
-|:--------------------------------|-----------:|:---------|:-------------|:---------------|:---------------|:------------|:------------------------|
-| Abies concolor                  |         98 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies concolor          |
-| Abies lowiana                   |         98 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies concolor          |
-| Abies nordmanniana              |         99 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies nordmanniana      |
-| Abies nordmanniana equi-trojani |         97 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies nordmanniana      |
-| Abies nordmanniana nordmanniana |         98 | Plantae  | Tracheophyta | Pinales        | Pinaceae       | Abies       | Abies nordmanniana      |
-| Abrothallus bertianus           |         97 | Fungi    | Ascomycota   | Abrothallales  | Abrothallaceae | Abrothallus | Abrothallus parmeliarum |
-| Abrothallus parmeliarum         |         97 | Fungi    | Ascomycota   | Abrothallales  | Abrothallaceae | Abrothallus | Abrothallus parmeliarum |
-| Acalitus stenaspis              |         99 | Animalia | Arthropoda   | Trombidiformes | Eriophyidae    | Acalitus    | Acalitus stenaspis      |
-| Acanthis cabaret                |         98 | Animalia | Chordata     | Passeriformes  | Fringillidae   | Acanthis    | Acanthis flammea        |
-| Acanthis flammea                |         99 | Animalia | Chordata     | Passeriformes  | Fringillidae   | Acanthis    | Acanthis flammea        |
+| matched_name2                   | confidence | kingdom  | phylum       | order          | species                 |
+|:--------------------------------|-----------:|:---------|:-------------|:---------------|:------------------------|
+| Abies concolor                  |         98 | Plantae  | Tracheophyta | Pinales        | Abies concolor          |
+| Abies lowiana                   |         98 | Plantae  | Tracheophyta | Pinales        | Abies concolor          |
+| Abies nordmanniana              |         99 | Plantae  | Tracheophyta | Pinales        | Abies nordmanniana      |
+| Abies nordmanniana equi-trojani |         97 | Plantae  | Tracheophyta | Pinales        | Abies nordmanniana      |
+| Abies nordmanniana nordmanniana |         98 | Plantae  | Tracheophyta | Pinales        | Abies nordmanniana      |
+| Abrothallus bertianus           |         97 | Fungi    | Ascomycota   | Abrothallales  | Abrothallus parmeliarum |
+| Abrothallus parmeliarum         |         97 | Fungi    | Ascomycota   | Abrothallales  | Abrothallus parmeliarum |
+| Acalitus stenaspis              |         99 | Animalia | Arthropoda   | Trombidiformes | Acalitus stenaspis      |
+| Acanthis cabaret                |         98 | Animalia | Chordata     | Passeriformes  | Acanthis flammea        |
+| Acanthis flammea                |         99 | Animalia | Chordata     | Passeriformes  | Acanthis flammea        |
 
 Table 1.3: First 10 duplicate species
+
+Finally we make a data.frame with the final species list
+
+<details style="\&quot;margin-bottom:10px;\&quot;">
+<summary>
+
+Final species list
+
+</summary>
+
+``` r
+FinalSpeciesList <- Species_Only |> 
+  group_by(species) |> 
+  dplyr::filter(confidence == max(confidence))
+readr::write_csv(FinalSpeciesList, "Results/FinalSpeciesList.csv")
+```
+
+</details>
 
 # 2 Presence download
 
